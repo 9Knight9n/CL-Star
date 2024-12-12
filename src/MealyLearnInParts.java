@@ -32,22 +32,31 @@ public class MealyLearnInParts {
     private Counter round_counter;
     private Counter eq_counter;
     private Logger logger;
+    private final boolean decomposedOracle;
 
 
     public MealyLearnInParts(Alphabet<String> alphabet,
                              MembershipOracle<String, Word<Word<String>>> mqOracle,
                              EquivalenceOracle<MealyMachine<?, String, ?, Word<String>>, String, Word<Word<String>>> eqOracle,
                              EquivalenceOracle<MealyMachine<?, String, ?, Word<String>>, String, Word<Word<String>>> partialEqOracle,
-                             Logger logger){
-
+                             Logger logger,
+                             boolean decomposedOracle) {
         this.eqOracle = eqOracle;
         this.partialEqOracle = partialEqOracle;
         this.alphabet = alphabet;
         this.mqOracle = mqOracle;
         this.logger = logger;
-
+        this.decomposedOracle = decomposedOracle;
         this.round_counter = new Counter("Decomposed Learning  rounds", "#");
         this.eq_counter = new Counter("Total number of equivalence queries", "#");
+    }
+
+    public MealyLearnInParts(Alphabet<String> alphabet,
+            MembershipOracle<String, Word<Word<String>>> mqOracle,
+            EquivalenceOracle<MealyMachine<?, String, ?, Word<String>>, String, Word<Word<String>>> eqOracle,
+            EquivalenceOracle<MealyMachine<?, String, ?, Word<String>>, String, Word<Word<String>>> partialEqOracle,
+            Logger logger) {
+        this(alphabet, mqOracle, eqOracle, partialEqOracle, logger, false);
     }
 
     public CompactMealy<String, Word<String>> run(StatisticSUL<String, Word<String>> eq_sym_counter,
