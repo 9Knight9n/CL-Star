@@ -45,6 +45,9 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 public class Learn_single_FSM {
+
+    private static final boolean SKIP_L_STAR = true;
+
     public static String FILE_NAME = "FILE_NAME";
     public static String STATES = "STATES";
     public static String INPUTS = "INPUTS";
@@ -137,14 +140,27 @@ public class Learn_single_FSM {
 
 //             RUN DECOMPOSED LEARNING
             @Nullable CompactMealy result = null;
-            result = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode);
+            result = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode, false);
 
             if (result == null) {
-                logger.warning("the  SUL is not learned completely");
+                logger.warning("First run: the SUL is not learned completely");
             }
 
-            //      Run LSTAR
-            learnProductMealy(target, alphabet, equivalence_method, final_check_mode);
+//           Clear cache and run decomposed learning again
+            System.gc(); // Help clear memory
+            @Nullable CompactMealy secondResult = null;
+            secondResult = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode, true);
+
+            if (secondResult == null) {
+                logger.warning("Second run: the SUL is not learned completely");
+            } else {
+                Utils.writeDataLineByLine(RESULTS_PATH, data);
+            }
+
+            // Only run L* learning if SKIP_L_STAR is false
+            if (!SKIP_L_STAR) {
+                learnProductMealy(target, alphabet, equivalence_method, final_check_mode);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -153,7 +169,7 @@ public class Learn_single_FSM {
 
     }
 
-    public static CompactMealy learnMealyInParts(CompactMealy mealyss, Alphabet<String> alphabet, String eq_method, String partial_eq_method, boolean test_mode) {
+    public static CompactMealy learnMealyInParts(CompactMealy mealyss, Alphabet<String> alphabet, String eq_method, String partial_eq_method, boolean test_mode, boolean decomposedOracle) {
 
         Utils.getInstance();
         // SUL simulator
@@ -200,7 +216,7 @@ public class Learn_single_FSM {
         eqOracle = buildEqOracle(eq_sul, eq_method);
 
 
-        MealyLearnInParts Mealy_LIP = new MealyLearnInParts(alphabet, mqOracle, eqOracle, partialEqOracle, logger);
+        MealyLearnInParts Mealy_LIP = new MealyLearnInParts(alphabet, mqOracle, eqOracle, partialEqOracle, logger, decomposedOracle);
         @Nullable CompactMealy result;
         if (!test_mode) {
             result = Mealy_LIP.run(eq_sym, null);
