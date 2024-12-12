@@ -11,7 +11,7 @@ import de.learnlib.filter.statistic.sul.ResetCounterSUL;
 import de.learnlib.filter.statistic.sul.SymbolCounterSUL;
 import de.learnlib.oracle.equivalence.RandomWMethodEQOracle;
 import de.learnlib.oracle.equivalence.RandomWordsEQOracle;
-import de.learnlib.oracle.equivalence.WMethodEQOracle;
+//import de.learnlib.oracle.equivalence.WMethodEQOracle;
 import de.learnlib.oracle.equivalence.WpMethodEQOracle;
 import de.learnlib.oracle.equivalence.mealy.RandomWalkEQOracle;
 import de.learnlib.oracle.membership.SULOracle;
@@ -147,15 +147,15 @@ public class Learn_single_FSM {
             }
 
 //           Clear cache and run decomposed learning again
-            System.gc(); // Help clear memory
-            @Nullable CompactMealy secondResult = null;
-            secondResult = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode, true);
+            // System.gc(); // Help clear memory
+            // @Nullable CompactMealy secondResult = null;
+            // secondResult = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode, true);
 
-            if (secondResult == null) {
-                logger.warning("Second run: the SUL is not learned completely");
-            } else {
-                Utils.writeDataLineByLine(RESULTS_PATH, data);
-            }
+            // if (secondResult == null) {
+            //     logger.warning("Second run: the SUL is not learned completely");
+            // } else {
+            //     Utils.writeDataLineByLine(RESULTS_PATH, data);
+            // }
 
             // Only run L* learning if SKIP_L_STAR is false
             if (!SKIP_L_STAR) {

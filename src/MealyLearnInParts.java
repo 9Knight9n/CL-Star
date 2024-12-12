@@ -92,20 +92,31 @@ public class MealyLearnInParts {
 //                    (post_eq_sym - pre_eq_sym) + " symbols in " + experiment.getRounds().getCount() + " rounds" );
 
             learnedParts.add(partialH);
-            if (productMealy== null){
-                productMealy = new ProductMealy(partialH);
+
+            if (!decomposedOracle)
+            {            
+                if (productMealy== null){
+                    productMealy = new ProductMealy(partialH);
+                }
+                else productMealy.mergeFSMs(partialH);
             }
-            else productMealy.mergeFSMs(partialH);
         }
 
-        assert productMealy != null;
-        CompactMealy<String, Word<String>> hypothesis = productMealy.getMachine();
-        @Nullable DefaultQuery<String, Word<Word<String>>> ce;
+        CompactMealy<String, Word<String>> hypothesis = null;
+        @Nullable DefaultQuery<String, Word<Word<String>>> ce = null;
         @Nullable DefaultQuery<String, Word<Word<String>>> ce2;
 
-        Long pre_eq_sym = Long.parseLong(Utils.ExtractValue(eq_sym_counter.getStatisticalData().getSummary()));
+        Long pre_eq_sym;
         Long post_eq_sym;
-        ce = eqOracle.findCounterExample(hypothesis,alphabet);
+        if(!decomposedOracle){
+            assert productMealy != null;
+            hypothesis = productMealy.getMachine();
+            pre_eq_sym = Long.parseLong(Utils.ExtractValue(eq_sym_counter.getStatisticalData().getSummary()));
+            ce = eqOracle.findCounterExample(hypothesis,alphabet);
+        }
+        else{
+            
+        }
         while (ce != null) {
 //            System.out.println("******************$$$$$$$$$$$$$$$$$$************$$$$$$$$$$$$************");
 //            logger.info("round " + round_counter.getCount() + "  counterexample:  " + ce);
