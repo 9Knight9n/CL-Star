@@ -193,6 +193,7 @@ public class Learn_single_FSM {
 
     public static CompactMealy learnMealyInParts(CompactMealy mealyss, Alphabet<String> alphabet, String eq_method, String partial_eq_method, boolean test_mode, boolean decomposedOracle) {
 
+        System.out.println(decomposedOracle ? "___  CL* algorithm with Decomposed Oracle ___" : "___  CL* algorithm with default Oracle ___");
         Utils.getInstance();
         // SUL simulator
         SUL<String, Word<String>> sulSim = new MealySimulatorSUL<>(mealyss, Utils.OMEGA_SYMBOL);
@@ -252,7 +253,6 @@ public class Learn_single_FSM {
                     buildEqOracle(eq_sul, "wp");
             result = Mealy_LIP.run(eq_sym, testEqOracle);
         }
-        System.out.println(decomposedOracle ? "___  CL* algorithm with Decomposed Oracle ___" : "___  CL* algorithm with default Oracle ___");
         System.out.println("Rounds: " + Mealy_LIP.getRound_counter().getCount());
         System.out.println("#EQs: " + Mealy_LIP.getEq_counter().getCount());
         System.out.println(mq_rst.getStatisticalData().toString());

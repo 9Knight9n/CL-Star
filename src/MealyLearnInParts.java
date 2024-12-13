@@ -62,6 +62,8 @@ public class MealyLearnInParts {
     public CompactMealy<String, Word<String>> run(StatisticSUL<String, Word<String>> eq_sym_counter,
                                                   EquivalenceOracle<MealyMachine<?, String, ?, Word<String>>, String, Word<Word<String>>> testEqOracle){
 
+        long initialStartTime = System.currentTimeMillis();
+        long eQTime = 0;
 
         List<Alphabet<String>> initialSimaF = new ArrayList<>();
         for (String action : this.alphabet) {
@@ -112,10 +114,16 @@ public class MealyLearnInParts {
         Long pre_eq_sym = Long.parseLong(Utils.ExtractValue(eq_sym_counter.getStatisticalData().getSummary()));
         Long post_eq_sym;
         if(!decomposedOracle){
-            ce = eqOracle.findCounterExample(hypothesis,alphabet);
+            long startTime = System.currentTimeMillis();
+            ce = eqOracle.findCounterExample(hypothesis, alphabet);
+            long endTime = System.currentTimeMillis();
+            eQTime = eQTime + endTime - startTime;
         }
         else{
+            long startTime = System.currentTimeMillis();
             ce = ((WMethodEQOracle)eqOracle).findCounterExample(hypothesis, alphabet, learnedParts, listOfInputs);
+            long endTime = System.currentTimeMillis();
+            eQTime = eQTime + endTime - startTime;
         }
         while (ce != null) {
 //            System.out.println("******************$$$$$$$$$$$$$$$$$$************$$$$$$$$$$$$************");
@@ -179,10 +187,16 @@ public class MealyLearnInParts {
             hypothesis = productMealy.getMachine();
             if (!decomposedOracle)
             {
+                long startTime = System.currentTimeMillis();
                 ce = eqOracle.findCounterExample(hypothesis, alphabet);
+                long endTime = System.currentTimeMillis();
+                eQTime = eQTime + endTime - startTime;
             }
             else {
+                long startTime = System.currentTimeMillis();
                 ce = ((WMethodEQOracle)eqOracle).findCounterExample(hypothesis, alphabet, learnedParts, sigmaFamily);
+                long endTime = System.currentTimeMillis();
+                eQTime = eQTime + endTime - startTime;
             }
             if(ce == null && testEqOracle!= null){
                 for (CompactMealy<String, Word<String>> comp: learnedParts){
@@ -210,6 +224,11 @@ public class MealyLearnInParts {
 //        logger.info(log_msg);
         // System.out.println("any CE for second run matching SUL: " + eqOracle.findCounterExample(final_H, alphabet) );
         
+        
+        long finalEndTime = System.currentTimeMillis();
+        double totalDurationInSeconds = (finalEndTime - initialStartTime) / 1000.0;
+        double eQTimeInseconds = eQTime / 1000.0;
+        System.out.printf("total of %.2f seconds for EQs (%.1f%% of total time)%n", eQTimeInseconds, (eQTimeInseconds/totalDurationInSeconds)*100.0);
         return final_H;
     }
 
