@@ -208,7 +208,7 @@ public class MealyLearnInParts {
             log_msg += "  - component with " + s.size() + " inputs: " + s + " and " +  final_H.size() + " states" + "\n";
         }
 //        logger.info(log_msg);
-        System.out.println("any CE for second run matching SUL: " + eqOracle.findCounterExample(final_H, alphabet) );
+        // System.out.println("any CE for second run matching SUL: " + eqOracle.findCounterExample(final_H, alphabet) );
         
         return final_H;
     }

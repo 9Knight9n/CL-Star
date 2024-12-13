@@ -11,7 +11,6 @@ import de.learnlib.filter.statistic.sul.ResetCounterSUL;
 import de.learnlib.filter.statistic.sul.SymbolCounterSUL;
 import de.learnlib.oracle.equivalence.RandomWMethodEQOracle;
 import de.learnlib.oracle.equivalence.RandomWordsEQOracle;
-//import de.learnlib.oracle.equivalence.WMethodEQOracle;
 import de.learnlib.oracle.equivalence.WpMethodEQOracle;
 import de.learnlib.oracle.equivalence.mealy.RandomWalkEQOracle;
 import de.learnlib.oracle.membership.SULOracle;
@@ -41,6 +40,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.logging.FileHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
@@ -67,6 +67,8 @@ public class Learn_single_FSM {
 
     public static String[] benchmarks;
     private static Boolean CACHE_ENABLE = true;
+    private static boolean runDecomposedFirst = new Random().nextBoolean(); // Initialize randomly
+
 
     private static String RESULTS_PATH;
     private static Logger logger;
@@ -79,6 +81,10 @@ public class Learn_single_FSM {
 
 
     public static void main(String[] args) throws IOException {
+        // Add these lines at the start of main to suppress the logs
+        Logger rootLogger = Logger.getLogger("");
+        rootLogger.setLevel(Level.WARNING);
+        
         csvProperties = CSVProperties.getInstance();
         experimentProperties = Experimentproperties.getInstance();
         try {
@@ -138,34 +144,44 @@ public class Learn_single_FSM {
             alphabet = Alphabets.fromArray(alphArr);
             Boolean final_check_mode = Boolean.valueOf(experimentProperties.getProp("final_check_mode"));
 
-//             RUN DECOMPOSED LEARNING
-            @Nullable CompactMealy result = null;
-            result = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode, false);
+            System.out.println("--------------------------------------------------------------------------------------------------------");
 
+            //             RUN DECOMPOSED LEARNING
+            long startTime = System.currentTimeMillis();
+            @Nullable CompactMealy result = null;
+            result = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode, runDecomposedFirst);
             if (result == null) {
                 logger.warning("First run: the SUL is not learned completely");
             } 
+            long endTime = System.currentTimeMillis();
+            long executionTime1 = endTime - startTime;
+            System.out.println("Execution time for the first run of DECOMPOSED LEARNING (using decomposed Wmethod=" + runDecomposedFirst + "): " + String.format("%.2f", executionTime1 / 1000.0) + " seconds");
+        
+            System.out.println("--------------------------------------------------------------------------------------------------------");
 
 //           Clear cache and run decomposed learning again
             System.gc(); // Help clear memory
+            startTime = System.currentTimeMillis();
             @Nullable CompactMealy secondResult = null;
-            secondResult = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode, true);
-
+            secondResult = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode, !runDecomposedFirst);
             if (secondResult == null) {
                 logger.warning("Second run: the SUL is not learned completely");
             } 
+            endTime = System.currentTimeMillis();
+            long executionTime2 = endTime - startTime;
+            System.out.println("Execution time for the second run of DECOMPOSED LEARNING (using decomposed Wmethod=" + !runDecomposedFirst + "): " + String.format("%.2f", executionTime2 / 1000.0) + " seconds");
+
+            // Calculate and print performance comparison
+            double speedup = runDecomposedFirst ? 
+                (double)executionTime2 / executionTime1 :
+                (double)executionTime1 / executionTime2;
+            System.out.println("Performance difference: Decomposed W-method is " + 
+                (speedup > 1 ? String.format("%.2fx faster", speedup) : 
+                String.format("%.2fx slower", 1/speedup)));
 
             // Only run L* learning if SKIP_L_STAR is false
             if (!SKIP_L_STAR) {
                 learnProductMealy(target, alphabet, equivalence_method, final_check_mode);
-            }
-
-            // Compare the results and log the outcome
-            boolean areEqual = compareCompactMealy(result, secondResult, alphabet);
-            if (areEqual) {
-                System.out.println("The results of the two runs match.");
-            } else {
-                System.out.println("The results of the two runs do not match.");
             }
 
         } catch (Exception e) {
@@ -236,7 +252,7 @@ public class Learn_single_FSM {
                     buildEqOracle(eq_sul, "wp");
             result = Mealy_LIP.run(eq_sym, testEqOracle);
         }
-        System.out.println("___  CL* algorithm  ___");
+        System.out.println(decomposedOracle ? "___  CL* algorithm with Decomposed Oracle ___" : "___  CL* algorithm with default Oracle ___");
         System.out.println("Rounds: " + Mealy_LIP.getRound_counter().getCount());
         System.out.println("#EQs: " + Mealy_LIP.getEq_counter().getCount());
         System.out.println(mq_rst.getStatisticalData().toString());
@@ -504,45 +520,5 @@ public class Learn_single_FSM {
         options.addOption(SRC_DIR, true, "Input directory");
         options.addOption(EQUIVALENCE_METHOD, true, "Equivalence method, options: wp, w, wrnd, rndWords, rndWordsBig, rndWalk");
         return options;
-    }
-
-    public static <I, O> boolean compareCompactMealy(CompactMealy<I, O> mealy1, CompactMealy<I, O> mealy2, Alphabet<I> alphabet) {
-        // Check if the number of states is the same
-        if (mealy1.size() != mealy2.size()) {
-            System.out.println("Mismatch in number of states: " + mealy1.size() + " vs " + mealy2.size());
-            return false;
-        }
-
-        // Check if the initial states are the same
-        if (!mealy1.getInitialState().equals(mealy2.getInitialState())) {
-            System.out.println("Mismatch in initial states: " + mealy1.getInitialState() + " vs " + mealy2.getInitialState());
-            return false;
-        }
-
-        // Iterate over all states and inputs to compare transitions and outputs
-        for (Integer state : mealy1.getStates()) {
-            for (I input : alphabet) {
-                Integer succ1 = mealy1.getSuccessor(state, input);
-                Integer succ2 = mealy2.getSuccessor(state, input);
-
-                // Check if the successors are the same
-                if (!Objects.equals(succ1, succ2)) {
-                    System.out.println("Mismatch in successors for state " + state + " and input " + input + ": " + succ1 + " vs " + succ2);
-                    return false;
-                }
-
-                // Check if the outputs are the same
-                O output1 = mealy1.getOutput(state, input);
-                O output2 = mealy2.getOutput(state, input);
-
-                if (!Objects.equals(output1, output2)) {
-                    System.out.println("Mismatch in outputs for state " + state + " and input " + input + ": " + output1 + " vs " + output2);
-                    return false;
-                }
-            }
-        }
-
-        // If all checks pass, the Mealy machines match
-        return true;
     }
 }
