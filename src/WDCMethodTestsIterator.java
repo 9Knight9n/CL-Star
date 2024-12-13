@@ -14,14 +14,41 @@ public class WDCMethodTestsIterator<I> extends AbstractThreeLevelIterator<List<I
     private final Iterable<Word<I>> suffixes;
     private final WordBuilder<I> wordBuilder = new WordBuilder();
 
-    public WDCMethodTestsIterator(Collection<? extends I> inputs, List<UniversalDeterministicAutomaton<?, I, ?, ?, ?>> ListOfAutomatons, List<Collection<? extends I>> listOfInputs, int maxDepth) {
-        super(CollectionsUtil.<I>allTuples(inputs, 0, maxDepth).iterator());
+    public WDCMethodTestsIterator(UniversalDeterministicAutomaton<?, I, ?, ?, ?> hypothesis, Collection<? extends I> allInputs, List<UniversalDeterministicAutomaton<?, I, ?, ?, ?>> ListOfAutomatons, List<Collection<? extends I>> listOfInputs, int maxDepth) {
+        super(CollectionsUtil.<I>allTuples(allInputs, 0, maxDepth).iterator());
         List<Iterable<Word<I>>> listOfPrefixes = new ArrayList<>();
         List<Iterable<Word<I>>> listOfSuffixes = new ArrayList<>();
 
-        for (UniversalDeterministicAutomaton<?, I, ?, ?, ?> automaton : ListOfAutomatons ){
+//        System.out.println("Inputs: " + allInputs);
+//
+//        // Log the list of automatons
+//        System.out.println("ListOfAutomatons: " + ListOfAutomatons);
+//
+//        // Log the list of inputs
+//        System.out.println("ListOfInputs: " + listOfInputs);
+//
+//        // Log the max depth
+//        System.out.println("MaxDepth: " + maxDepth);
+
+        for (int index = 0; index < ListOfAutomatons.size(); index++){
+            UniversalDeterministicAutomaton<?, I, ?, ?, ?> automaton = ListOfAutomatons.get(index);
+            Collection<? extends I> inputs = listOfInputs.get(index);
+            
+//                    // Log each automaton and its inputs
+//            System.out.println("Iteration " + index + ":");
+//            System.out.println("  Automaton: " + automaton);
+//            System.out.println("  Automaton Inputs: " + inputs);
+//
+//            // Log the size of the automaton and inputs
+//            System.out.println("  Automaton Size: " + automaton.size());
+//            System.out.println("  Inputs Size: " + inputs.size());
+
+
             listOfPrefixes.add(new ReusableIterator(Covers.transitionCoverIterator(automaton, inputs), new ArrayList(automaton.size() * inputs.size())));
             Iterator<Word<I>> characterizingSet = CharacterizingSets.characterizingSetIterator(automaton, inputs);
+            
+//            System.out.println("  Characterizing Set has elements: " + characterizingSet.hasNext());
+
             if (!characterizingSet.hasNext()) {
                 listOfSuffixes.add(Collections.singletonList(Word.epsilon()));
             } else {
@@ -35,6 +62,17 @@ public class WDCMethodTestsIterator<I> extends AbstractThreeLevelIterator<List<I
         this.suffixes = () -> listOfSuffixes.stream()
                 .flatMap(iterable -> StreamSupport.stream(iterable.spliterator(), false))
                 .iterator();
+        // System.out.println("new method prefixes: " + this.prefixes);
+        // System.out.println("new method suffixes: " + this.suffixes);
+
+        // Iterator<Word<I>> characterizingSet2 = CharacterizingSets.characterizingSetIterator(hypothesis, allInputs);
+        // System.out.println("new method prefixes: " + new ReusableIterator(Covers.transitionCoverIterator(hypothesis, allInputs), new ArrayList(hypothesis.size() * allInputs.size())));
+        // if (!characterizingSet2.hasNext()) {
+        //     System.out.println("new method suffixes: " + Collections.singletonList(Word.epsilon()));
+        // } else {
+        //     System.out.println("new method suffixes: " + new ReusableIterator(characterizingSet2));
+        // }
+        
     }
 
     protected Iterator<Word<I>> l2Iterator(List<I> l1Object) {

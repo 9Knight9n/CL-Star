@@ -62,7 +62,7 @@ public abstract class AbstractTestWordDCEQOracle<A extends Output<I, D>, I, D> i
     }
 
     protected abstract Stream<Word<I>> generateTestWords(A var1, Collection<? extends I> var2, List<A> var3, List<Collection<? extends I>> var4);
-    protected abstract Stream<Word<I>> generateTestWords(A var1, Collection<? extends I> var2);
+    protected abstract Stream<Word<I>> generateTestWords(A var1, Collection<? extends I> var2   );
 
     private Stream<DefaultQuery<I, D>> answerQueries(Stream<DefaultQuery<I, D>> stream) {
         if (this.isBatched()) {

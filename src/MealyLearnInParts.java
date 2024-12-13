@@ -72,6 +72,7 @@ public class MealyLearnInParts {
         round_counter.increment();
         List<CompactMealy<String, Word<String>>> learnedParts = new ArrayList<>();
         ProductMealy productMealy = null;
+        List<Alphabet<String>> listOfInputs = new ArrayList<>();
         for(Alphabet<String> sigmai : sigmaFamily ){
             ExtensibleLStarMealyBuilder<String, Word<String>> builder = new ExtensibleLStarMealyBuilder<String, Word<String>>();
             builder.setAlphabet(sigmai);
@@ -92,30 +93,29 @@ public class MealyLearnInParts {
 //                    (post_eq_sym - pre_eq_sym) + " symbols in " + experiment.getRounds().getCount() + " rounds" );
 
             learnedParts.add(partialH);
+            if (productMealy== null){
+                productMealy = new ProductMealy(partialH);
+            }
+            else productMealy.mergeFSMs(partialH);
 
-            if (!decomposedOracle)
+            if (decomposedOracle)
             {            
-                if (productMealy== null){
-                    productMealy = new ProductMealy(partialH);
-                }
-                else productMealy.mergeFSMs(partialH);
+                listOfInputs.add(sigmai);
             }
         }
 
-        CompactMealy<String, Word<String>> hypothesis = null;
+        CompactMealy<String, Word<String>> hypothesis = productMealy.getMachine();
         @Nullable DefaultQuery<String, Word<Word<String>>> ce = null;
         @Nullable DefaultQuery<String, Word<Word<String>>> ce2;
+        assert productMealy != null;
 
-        Long pre_eq_sym;
+        Long pre_eq_sym = Long.parseLong(Utils.ExtractValue(eq_sym_counter.getStatisticalData().getSummary()));
         Long post_eq_sym;
         if(!decomposedOracle){
-            assert productMealy != null;
-            hypothesis = productMealy.getMachine();
-            pre_eq_sym = Long.parseLong(Utils.ExtractValue(eq_sym_counter.getStatisticalData().getSummary()));
             ce = eqOracle.findCounterExample(hypothesis,alphabet);
         }
         else{
-            
+            ce = ((WMethodEQOracle)eqOracle).findCounterExample(hypothesis, alphabet, learnedParts, listOfInputs);
         }
         while (ce != null) {
 //            System.out.println("******************$$$$$$$$$$$$$$$$$$************$$$$$$$$$$$$************");
@@ -177,7 +177,13 @@ public class MealyLearnInParts {
                 else productMealy.mergeFSMs(component);
             }
             hypothesis = productMealy.getMachine();
-            ce = eqOracle.findCounterExample(hypothesis, alphabet);
+            if (!decomposedOracle)
+            {
+                ce = eqOracle.findCounterExample(hypothesis, alphabet);
+            }
+            else {
+                ce = ((WMethodEQOracle)eqOracle).findCounterExample(hypothesis, alphabet, learnedParts, sigmaFamily);
+            }
             if(ce == null && testEqOracle!= null){
                 for (CompactMealy<String, Word<String>> comp: learnedParts){
                     ce2 = testEqOracle.findCounterExample(comp, comp.getInputAlphabet());
@@ -202,6 +208,8 @@ public class MealyLearnInParts {
             log_msg += "  - component with " + s.size() + " inputs: " + s + " and " +  final_H.size() + " states" + "\n";
         }
 //        logger.info(log_msg);
+        System.out.println("any CE for second run matching SUL: " + eqOracle.findCounterExample(final_H, alphabet) );
+        
         return final_H;
     }
 

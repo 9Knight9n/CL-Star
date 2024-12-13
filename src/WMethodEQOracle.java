@@ -28,7 +28,7 @@ public class WMethodEQOracle<A extends UniversalDeterministicAutomaton<?, I, ?, 
     }
 
     public Stream<Word<I>> generateTestWords(A hypothesis, Collection<? extends I> inputs,List<A> listOfHypothesises, List<Collection<? extends I>> listOfInputs) {
-        return Streams.stream(new WDCMethodTestsIterator(inputs, listOfHypothesises, listOfInputs, Math.max(this.lookahead, this.expectedSize - hypothesis.size())));
+        return Streams.stream(new WDCMethodTestsIterator(hypothesis, inputs, listOfHypothesises, listOfInputs, Math.max(this.lookahead, this.expectedSize - hypothesis.size())));
     }
 
     public Stream<Word<I>> generateTestWords(A hypothesis, Collection<? extends I> inputs) {

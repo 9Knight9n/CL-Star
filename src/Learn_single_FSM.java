@@ -144,22 +144,28 @@ public class Learn_single_FSM {
 
             if (result == null) {
                 logger.warning("First run: the SUL is not learned completely");
-            }
+            } 
 
 //           Clear cache and run decomposed learning again
-            // System.gc(); // Help clear memory
-            // @Nullable CompactMealy secondResult = null;
-            // secondResult = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode, true);
+            System.gc(); // Help clear memory
+            @Nullable CompactMealy secondResult = null;
+            secondResult = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode, true);
 
-            // if (secondResult == null) {
-            //     logger.warning("Second run: the SUL is not learned completely");
-            // } else {
-            //     Utils.writeDataLineByLine(RESULTS_PATH, data);
-            // }
+            if (secondResult == null) {
+                logger.warning("Second run: the SUL is not learned completely");
+            } 
 
             // Only run L* learning if SKIP_L_STAR is false
             if (!SKIP_L_STAR) {
                 learnProductMealy(target, alphabet, equivalence_method, final_check_mode);
+            }
+
+            // Compare the results and log the outcome
+            boolean areEqual = compareCompactMealy(result, secondResult, alphabet);
+            if (areEqual) {
+                System.out.println("The results of the two runs match.");
+            } else {
+                System.out.println("The results of the two runs do not match.");
             }
 
         } catch (Exception e) {
@@ -498,5 +504,45 @@ public class Learn_single_FSM {
         options.addOption(SRC_DIR, true, "Input directory");
         options.addOption(EQUIVALENCE_METHOD, true, "Equivalence method, options: wp, w, wrnd, rndWords, rndWordsBig, rndWalk");
         return options;
+    }
+
+    public static <I, O> boolean compareCompactMealy(CompactMealy<I, O> mealy1, CompactMealy<I, O> mealy2, Alphabet<I> alphabet) {
+        // Check if the number of states is the same
+        if (mealy1.size() != mealy2.size()) {
+            System.out.println("Mismatch in number of states: " + mealy1.size() + " vs " + mealy2.size());
+            return false;
+        }
+
+        // Check if the initial states are the same
+        if (!mealy1.getInitialState().equals(mealy2.getInitialState())) {
+            System.out.println("Mismatch in initial states: " + mealy1.getInitialState() + " vs " + mealy2.getInitialState());
+            return false;
+        }
+
+        // Iterate over all states and inputs to compare transitions and outputs
+        for (Integer state : mealy1.getStates()) {
+            for (I input : alphabet) {
+                Integer succ1 = mealy1.getSuccessor(state, input);
+                Integer succ2 = mealy2.getSuccessor(state, input);
+
+                // Check if the successors are the same
+                if (!Objects.equals(succ1, succ2)) {
+                    System.out.println("Mismatch in successors for state " + state + " and input " + input + ": " + succ1 + " vs " + succ2);
+                    return false;
+                }
+
+                // Check if the outputs are the same
+                O output1 = mealy1.getOutput(state, input);
+                O output2 = mealy2.getOutput(state, input);
+
+                if (!Objects.equals(output1, output2)) {
+                    System.out.println("Mismatch in outputs for state " + state + " and input " + input + ": " + output1 + " vs " + output2);
+                    return false;
+                }
+            }
+        }
+
+        // If all checks pass, the Mealy machines match
+        return true;
     }
 }
