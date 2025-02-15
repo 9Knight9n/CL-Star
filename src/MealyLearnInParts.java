@@ -115,13 +115,17 @@ public class MealyLearnInParts {
         Long post_eq_sym;
         if(!decomposedOracle){
             long startTime = System.currentTimeMillis();
-            ce = eqOracle.findCounterExample(hypothesis, alphabet);
+            ce = ((WMethodEQOracle)eqOracle).findCounterExample(hypothesis, alphabet);
             long endTime = System.currentTimeMillis();
             eQTime = eQTime + endTime - startTime;
         }
         else{
             long startTime = System.currentTimeMillis();
+            System.out.println("--------------composed---------------");
             ce = ((WMethodEQOracle)eqOracle).findCounterExample(hypothesis, alphabet, learnedParts, listOfInputs);
+//            System.out.println("---------------default---------------");
+//            ce = ((WMethodEQOracle)eqOracle).findCounterExample(hypothesis, alphabet);
+//            System.exit(1);
             long endTime = System.currentTimeMillis();
             eQTime = eQTime + endTime - startTime;
         }
@@ -188,7 +192,7 @@ public class MealyLearnInParts {
             if (!decomposedOracle)
             {
                 long startTime = System.currentTimeMillis();
-                ce = eqOracle.findCounterExample(hypothesis, alphabet);
+                ce = ((WMethodEQOracle)eqOracle).findCounterExample(hypothesis, alphabet);
                 long endTime = System.currentTimeMillis();
                 eQTime = eQTime + endTime - startTime;
             }
@@ -222,13 +226,13 @@ public class MealyLearnInParts {
             log_msg += "  - component with " + s.size() + " inputs: " + s + " and " +  final_H.size() + " states" + "\n";
         }
 //        logger.info(log_msg);
-        // System.out.println("any CE for second run matching SUL: " + eqOracle.findCounterExample(final_H, alphabet) );
-        
         
         long finalEndTime = System.currentTimeMillis();
         double totalDurationInSeconds = (finalEndTime - initialStartTime) / 1000.0;
         double eQTimeInseconds = eQTime / 1000.0;
         System.out.printf("total of %.2f seconds for EQs (%.1f%% of total time)%n", eQTimeInseconds, (eQTimeInseconds/totalDurationInSeconds)*100.0);
+//        if (decomposedOracle)
+//            System.out.println("any CE for second run matching SUL: " + eqOracle.findCounterExample(final_H, alphabet) );
         return final_H;
     }
 
