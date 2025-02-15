@@ -32,6 +32,6 @@ public class WMethodEQOracle<A extends UniversalDeterministicAutomaton<?, I, ?, 
     }
 
     public Stream<Word<I>> generateTestWords(A hypothesis, Collection<? extends I> inputs) {
-        return Streams.stream(new WMethodTestsIterator(hypothesis, inputs, Math.max(this.lookahead, this.expectedSize - hypothesis.size())));
+        return Streams.stream(new WDCMethodTestsIterator(hypothesis, inputs, Math.max(this.lookahead, this.expectedSize - hypothesis.size())));
     }
 }
