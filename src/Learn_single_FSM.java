@@ -67,7 +67,8 @@ public class Learn_single_FSM {
 
     public static String[] benchmarks;
     private static Boolean CACHE_ENABLE = true;
-    private static boolean runDecomposedFirst = new Random().nextBoolean(); // Initialize randomly
+    // private static boolean runDecomposedFirst = new Random().nextBoolean(); // Initialize randomly
+    private static boolean runDecomposedFirst = true; // Initialize randomly
 
 
     private static String RESULTS_PATH;
@@ -166,17 +167,17 @@ public class Learn_single_FSM {
             secondResult = learnMealyInParts(target, alphabet, equivalence_method, "rndWords", final_check_mode, !runDecomposedFirst);
             if (secondResult == null) {
                 logger.warning("Second run: the SUL is not learned completely");
-            } 
+            }
             endTime = System.currentTimeMillis();
             long executionTime2 = endTime - startTime;
             System.out.println("Execution time for the second run of DECOMPOSED LEARNING (using decomposed Wmethod=" + !runDecomposedFirst + "): " + String.format("%.2f", executionTime2 / 1000.0) + " seconds");
 
             // Calculate and print performance comparison
-            double speedup = runDecomposedFirst ? 
+            double speedup = runDecomposedFirst ?
                 (double)executionTime2 / executionTime1 :
                 (double)executionTime1 / executionTime2;
-            System.out.println("Performance difference: Decomposed W-method is " + 
-                (speedup > 1 ? String.format("%.2fx faster", speedup) : 
+            System.out.println("Performance difference: Decomposed W-method is " +
+                (speedup > 1 ? String.format("%.2fx faster", speedup) :
                 String.format("%.2fx slower", 1/speedup)));
 
             // Only run L* learning if SKIP_L_STAR is false
