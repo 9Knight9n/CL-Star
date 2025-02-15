@@ -19,7 +19,7 @@ Getting Started
     Open a shell/terminal inside the artifact directory. If you are a Windows user, we recommend powerShell of Git Bash.
     to load the image, run:
 
-        docker build --tag cl-star .
+        docker build --no-cache --tag cl-star .
 
     This command creates the docker image "cl-star:latest".
 
@@ -31,7 +31,7 @@ Getting Started
         docker run  -v "$(pwd)"/data:/app/data -it --entrypoint=/bin/bash cl-star -i
 
     If you are using powerShell on Windows, run this command:
-        docker run -v ${pwd}/data:/app/data -it --entrypoint=/bin/bash cl-star -i
+        docker run --rm -v ${pwd}/data:/app/data -it --entrypoint=/bin/bash cl-star -i
 
     and run this command if you are Git Bash on Windows:
         docker run -v  "${PWD}/data/":/app/data/ -it --entrypoint bash cl-star -i
@@ -116,3 +116,20 @@ Rebuild the Project
         cd ..
 
     The jar file of the project will be at ./cl-star.jar
+
+
+
+
+build:
+    docker build --no-cache --tag cl-star .
+run:
+    docker run --rm -v ${pwd}/data:/app/data -it --entrypoint=/bin/bash cl-star -i
+    java -cp ./libs/learnlib-distribution-0.16.0-dependencies-bundle.jar:./libs/opencsv-5.6.jar:./libs/slf4j-jdk14-1.7.36.jar:./libs/commons-cli-1.4.jar:cl-star.jar Learn_single_FSM -eq cw
+
+on linux:
+    docker build --no-cache --tag cl-star . && docker run --rm -v ${PWD}/data:/app/data -it cl-star /bin/bash -c "java -cp ./libs/learnlib-distribution-0.16.0-dependencies-bundle.jar:./libs/opencsv-5.6.jar:./libs/slf4j-jdk14-1.7.36.jar:./libs/commons-cli-1.4.jar:cl-star.jar Learn_single_FSM -eq cw"
+
+on powershell:
+    docker build --no-cache --tag cl-star .; if ($LASTEXITCODE -eq 0) { docker run --rm -v ${PWD}/data:/app/data -it cl-star /bin/bash -c "java -cp ./libs/learnlib-distribution-0.16.0-dependencies-bundle.jar:./libs/opencsv-5.6.jar:./libs/slf4j-jdk14-1.7.36.jar:./libs/commons-cli-1.4.jar:cl-star.jar Learn_single_FSM -eq w" }
+
+    docker build --no-cache --tag cl-star .; if ($LASTEXITCODE -eq 0) { docker run --rm -v ${PWD}/data:/app/data -it cl-star /bin/bash -c "java -cp ./libs/learnlib-distribution-0.16.0-dependencies-bundle.jar:./libs/opencsv-5.6.jar:./libs/slf4j-jdk14-1.7.36.jar:./libs/commons-cli-1.4.jar:cl-star.jar CharacterizingSetCalculator -eq w" }
